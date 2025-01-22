@@ -1,0 +1,1479 @@
+📁 chat_calificacion/
+    📄 estr.py
+        import os
+        
+        def guardar_estructura_con_iconos(archivo_salida):
+            ruta_actual = os.getcwd()  # Obtiene la carpeta actual
+            # Agrega el archivo de salida a la lista de archivos excluidos
+            archivos_excluidos = [
+                "pca_model.pkl",
+                "pruebamaira.ipynb",
+                "Texto_extraido.txt",
+                "package-lock.json",
+                "estructura_carpeta_con_iconos.txt",
+                ".readme",
+                "estrucutra.py",
+                archivo_salida  # Excluir el archivo de salida para evitar recursión
+            ]
+            carpetas_excluidas = ["__pycache__", ".git", "venv", "node_modules","DATOS",""]  # Carpetas a excluir
+            # Iconos para carpetas y archivos
+            ICONO_CARPETA = "📁"
+            ICONO_ARCHIVO = "📄"
+        
+            with open(archivo_salida, 'w', encoding='utf-8') as archivo:
+                for ruta, directorios, archivos in os.walk(ruta_actual):
+                    # Excluir carpetas especificadas
+                    directorios[:] = [d for d in directorios if d not in carpetas_excluidas]
+        
+                    # Calcular el nivel de profundidad para la indentación
+                    nivel = ruta.replace(ruta_actual, "").count(os.sep)
+                    indentacion = "    " * nivel
+                    nombre_carpeta = os.path.basename(ruta) or ruta_actual
+                    # Escribir la carpeta actual con el icono
+                    archivo.write(f"{indentacion}{ICONO_CARPETA} {nombre_carpeta}/\n")
+        
+                    # Escribir los archivos en la carpeta actual con su icono y contenido
+                    for nombre_archivo in archivos:
+                        # Excluir el archivo de salida y otros archivos especificados
+                        if nombre_archivo in archivos_excluidos:
+                            archivo.write(f"{indentacion}    {ICONO_ARCHIVO} {nombre_archivo}\n")
+                            archivo.write(f"{indentacion}        [Contenido no mostrado para este archivo]\n")
+                            continue
+        
+                        archivo_ruta = os.path.join(ruta, nombre_archivo)
+                        archivo.write(f"{indentacion}    {ICONO_ARCHIVO} {nombre_archivo}\n")
+        
+                        # Excluir contenido de archivos específicos
+                        if nombre_archivo not in archivos_excluidos:
+                            try:
+                                with open(archivo_ruta, 'r', encoding='utf-8') as archivo_codigo:
+                                    contenido = archivo_codigo.read()
+                                    contenido_indentado = "\n".join([
+                                        f"{indentacion}        {linea}" for linea in contenido.splitlines()
+                                    ])
+                                    archivo.write(f"{contenido_indentado}\n")
+                            except Exception as e:
+                                archivo.write(f"{indentacion}        [No se pudo leer el archivo: {e}]\n")
+                        else:
+                            archivo.write(f"{indentacion}        [Contenido no mostrado para este archivo]\n")
+            print(f"Estructura y contenido guardados en '{archivo_salida}'.")
+        
+        # Ejecutar el script
+        archivo_salida = "estructura_carpeta_con_iconos.txt"  # Nombre del archivo de salida
+        guardar_estructura_con_iconos(archivo_salida)
+    📄 estructura_carpeta_con_iconos.txt
+        [Contenido no mostrado para este archivo]
+    📄 index.html
+        <!DOCTYPE html>
+            <html lang="es">
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>CRM Sistema</title>
+            </head>
+            <body>
+              <div id="root"></div>
+              <script type="module" src="/src/main.jsx"></script>
+            </body>
+            </html>
+    📄 package-lock.json
+        [Contenido no mostrado para este archivo]
+    📄 package.json
+        {
+          "name": "try",
+          "private": true,
+          "version": "0.0.0",
+          "type": "module",
+          "scripts": {
+            "dev": "vite",
+            "build": "vite build",
+            "preview": "vite preview",
+            "start": "node index.js"
+          },
+          "dependencies": {
+            "axios": "^1.7.9",
+            "bcrypt": "^5.1.1",
+            "cors": "^2.8.5",
+            "dayjs": "^1.11.9",
+            "dotenv": "^16.4.7",
+            "express": "^4.21.2",
+            "jsonwebtoken": "^9.0.2",
+            "react": "^18.2.0",
+            "react-beautiful-dnd": "^13.1.1",
+            "react-dom": "^18.2.0",
+            "react-router-dom": "^7.1.2",
+            "sql.js": "^1.8.0"
+          },
+          "devDependencies": {
+            "@types/react": "^18.0.28",
+            "@types/react-dom": "^18.0.11",
+            "@vitejs/plugin-react": "^3.1.0",
+            "vite": "^4.2.0"
+          }
+        }
+    📄 vite.config.js
+        import { defineConfig } from 'vite';
+        import react from '@vitejs/plugin-react';
+        
+        // https://vitejs.dev/config/
+        export default defineConfig({
+          plugins: [react()],
+        });
+    📁 server/
+        📄 .env
+            DB_HOST=atusaludlicoreria.com
+            DB_NAME=atusalud_kossodotry
+            DB_USER=atusalud_atusalud
+            DB_PASSWORD=kmachin1
+            DB_PORT=3306
+            JWT_SECRET=MI_SECRETO_SUPER_SECRETO  # O cualquier string largo que quieras
+        📄 dbConfig.js
+            // server/dbConfig.js
+            import mysql from 'mysql2/promise';
+            import * as dotenv from 'dotenv';
+            
+            dotenv.config(); // Carga variables de .env
+            
+            const pool = mysql.createPool({
+              host: process.env.DB_HOST,
+              user: process.env.DB_USER,
+              password: process.env.DB_PASSWORD,
+              database: process.env.DB_NAME,
+              port: process.env.DB_PORT,
+            });
+            
+            async function initDB() {
+              try {
+                // Crea tabla de sesiones (etiqueta) con columna 'estado'
+                await pool.query(`
+                  CREATE TABLE IF NOT EXISTS conversaciones_sesion (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    userId INT NOT NULL,
+                    titulo VARCHAR(255) NOT NULL,
+                    estado VARCHAR(50) NOT NULL DEFAULT 'en-conversacion',
+                    fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    -- Podrías meter aquí FOREIGN KEY (userId) REFERENCES usuarios(id)
+                  );
+                `);
+            
+                // Crea tabla de historial
+                await pool.query(`
+                  CREATE TABLE IF NOT EXISTS conversaciones_historial (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    id_sesion INT NOT NULL,
+                    mensaje TEXT NOT NULL,
+                    fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (id_sesion) REFERENCES conversaciones_sesion(id)
+                  );
+                `);
+            
+                console.log("Tablas creadas/verificadas correctamente.");
+              } catch (error) {
+                console.error("Error creando tablas:", error);
+              }
+            }
+            
+            initDB(); // Llamada inicial para crear/verificar tablas.
+            
+            export default pool;
+        📄 index.js
+            // server/index.js
+            import express from 'express';
+            import cors from 'cors';
+            import authRoutes from './routes/authRoutes.js';
+            import sessionsRoutes from './routes/sessionsRoutes.js';
+            
+            const app = express();
+            
+            app.use(cors());
+            app.use(express.json());
+            
+            // Rutas de login
+            app.use('/auth', authRoutes);
+            
+            // Rutas de sesiones
+            app.use('/sessions', sessionsRoutes);
+            
+            const PORT = 3001;
+            app.listen(PORT, () => {
+              console.log(`Servidor backend escuchando en http://localhost:${PORT}`);
+            });
+        📄 package-lock.json
+            [Contenido no mostrado para este archivo]
+        📄 package.json
+            {
+                "name": "crm-sistema",
+                "version": "1.0.0",
+                "type": "module",
+                "scripts": {
+                  "start": "node index.js"
+                },
+                "dependencies": {
+                  "express": "^4.18.2",
+                  "mysql2": "^3.2.0",
+                  "dotenv": "^16.0.0",
+                  "cors": "^2.8.5",
+                  "bcrypt": "^5.1.0",
+                  "jsonwebtoken": "^9.0.0"
+                }
+              }
+              
+        📁 middlewares/
+            📄 authMiddleware.js
+                // server/middlewares/authMiddleware.js
+                import jwt from 'jsonwebtoken';
+                
+                export function requireAuth(req, res, next) {
+                  try {
+                    const authHeader = req.headers.authorization;
+                    if (!authHeader) {
+                      return res.status(401).json({ error: 'No token provided' });
+                    }
+                
+                    const [bearer, token] = authHeader.split(' ');
+                    if (bearer !== 'Bearer' || !token) {
+                      return res.status(401).json({ error: 'Invalid token format' });
+                    }
+                
+                    const decoded = jwt.verify(
+                      token,
+                      process.env.JWT_SECRET || 'MI_SECRETO_SUPER_SECRETO'
+                    );
+                    req.user = decoded; // ej: { id: 1, correo: '...', rol: '...', iat:..., exp:... }
+                
+                    next();
+                  } catch (error) {
+                    return res.status(401).json({ error: 'Token inválido o expirado' });
+                  }
+                }
+        📁 routes/
+            📄 authRoutes.js
+                // server/routes/authRoutes.js
+                import { Router } from 'express';
+                import pool from '../dbConfig.js';
+                import jwt from 'jsonwebtoken';
+                import bcrypt from 'bcrypt';
+                
+                const router = Router();
+                
+                // POST /login
+                router.post('/login', async (req, res) => {
+                  try {
+                    const { correo, password } = req.body;
+                
+                    if (!correo || !password) {
+                      return res.status(400).json({ error: 'Faltan campos' });
+                    }
+                
+                    // 1. Buscar el usuario en la BD
+                    const [rows] = await pool.query(
+                      'SELECT * FROM usuarios WHERE correo = ? LIMIT 1',
+                      [correo]
+                    );
+                
+                    if (rows.length === 0) {
+                      return res.status(401).json({ error: 'Credenciales inválidas' });
+                    }
+                
+                    const user = rows[0];  
+                    // user.password es la contraseña en la BD
+                    // user.rol, user.correo, user.nombre, etc.
+                
+                    // 2. Comparar contraseñas (si está hasheada en la BD)
+                    //    Si NO está hasheada, la comparación sería user.password === password
+                    if (user.password !== password) {
+                        return res.status(401).json({ error: 'Credenciales inválidas' });
+                      }
+                
+                    // 3. Crear token con JWT
+                    const token = jwt.sign(
+                      {
+                        id: user.id,
+                        correo: user.correo,
+                        rol: user.rol,
+                      },
+                      process.env.JWT_SECRET || 'MI_SECRETO_SUPER_SECRETO',
+                      {
+                        expiresIn: '1h', // el token expirará en 1 hora
+                      }
+                    );
+                
+                    // 4. Devolver el token al frontend
+                    return res.json({
+                      msg: 'Login exitoso',
+                      token,
+                      nombre: user.nombre,
+                      rol: user.rol,
+                    });
+                  } catch (error) {
+                    console.error('Error en POST /login:', error);
+                    return res.status(500).json({ error: 'Error interno en el servidor' });
+                  }
+                });
+                
+                export default router;
+            📄 sessionsRoutes.js
+                // server/routes/sessionsRoutes.js
+                import { Router } from 'express';
+                import pool from '../dbConfig.js';
+                import { requireAuth } from '../middlewares/authMiddleware.js';
+                
+                const router = Router();
+                
+                // Crear nueva sesión (etiqueta) con campos adicionales
+                router.post('/', requireAuth, async (req, res) => {
+                  try {
+                    const userId = req.user.id;
+                    const { titulo, empresa, ruc, consulta, fecha, telefono } = req.body; // Extraer los nuevos campos
+                
+                    // Validar que los campos requeridos estén presentes
+                    if (!titulo || !empresa || !ruc || !consulta || !fecha || !telefono) {
+                      return res.status(400).json({ error: 'Faltan campos necesarios' });
+                    }
+                
+                    // Insertar la sesión con los nuevos campos
+                    const [result] = await pool.query(`
+                      INSERT INTO conversaciones_sesion (userId, titulo, estado, fecha_creacion, empresa, ruc, consulta, fecha, telefono)
+                      VALUES (?, ?, 'en-conversacion', NOW(), ?, ?, ?, ?, ?)
+                    `, [userId, titulo, empresa, ruc, consulta, fecha, telefono]);
+                
+                    const newId = result.insertId;
+                    return res.json({
+                      msg: 'Sesión creada',
+                      id: newId,
+                      titulo,
+                      userId,
+                      estado: 'en-conversacion',
+                      empresa,
+                      ruc,
+                      consulta,
+                      fecha,
+                      telefono
+                    });
+                  } catch (error) {
+                    console.error('Error creando sesión:', error);
+                    return res.status(500).json({ error: 'Error interno' });
+                  }
+                });
+                
+                // Listar solo las sesiones del usuario actual con campos adicionales
+                router.get('/', requireAuth, async (req, res) => {
+                  try {
+                    const userId = req.user.id;
+                    const [rows] = await pool.query(`
+                      SELECT id, userId, titulo, estado, fecha_creacion, empresa, ruc, consulta, fecha, telefono
+                      FROM conversaciones_sesion
+                      WHERE userId = ?
+                      ORDER BY id DESC
+                    `, [userId]);
+                
+                    return res.json(rows); // Ahora incluye los nuevos campos
+                  } catch (error) {
+                    console.error('Error listando sesiones:', error);
+                    return res.status(500).json({ error: 'Error interno' });
+                  }
+                });
+                
+                // Crear un historial (mensaje) en una sesión dada
+                router.post('/:id/historial', requireAuth, async (req, res) => {
+                  try {
+                    const userId = req.user.id;
+                    const sesionId = req.params.id;
+                    const { mensaje } = req.body;
+                
+                    if (!mensaje) {
+                      return res.status(400).json({ error: 'Falta el mensaje' });
+                    }
+                
+                    // Validar que la sesión le pertenezca al user
+                    const [sesionRows] = await pool.query(`
+                      SELECT * FROM conversaciones_sesion
+                      WHERE id = ? AND userId = ?
+                    `, [sesionId, userId]);
+                
+                    if (sesionRows.length === 0) {
+                      return res.status(403).json({ error: 'No tienes acceso a esta sesión' });
+                    }
+                
+                    // Insertar el mensaje en el historial
+                    await pool.query(`
+                      INSERT INTO conversaciones_historial (id_sesion, mensaje, fecha)
+                      VALUES (?, ?, NOW())
+                    `, [sesionId, mensaje]);
+                
+                    return res.json({ msg: 'Mensaje agregado al historial' });
+                  } catch (error) {
+                    console.error('Error creando mensaje:', error);
+                    return res.status(500).json({ error: 'Error interno' });
+                  }
+                });
+                
+                // Obtener historial de una sesión
+                router.get('/:id/historial', requireAuth, async (req, res) => {
+                  try {
+                    const userId = req.user.id; 
+                    const sesionId = req.params.id;
+                
+                    // Validar que la sesión le pertenezca
+                    const [sesionRows] = await pool.query(`
+                      SELECT * FROM conversaciones_sesion
+                      WHERE id = ? AND userId = ?
+                    `, [sesionId, userId]);
+                
+                    if (sesionRows.length === 0) {
+                      return res.status(403).json({ error: 'No tienes acceso a esta sesión' });
+                    }
+                
+                    // Obtener historial
+                    const [historialRows] = await pool.query(`
+                      SELECT * FROM conversaciones_historial
+                      WHERE id_sesion = ?
+                      ORDER BY id ASC
+                    `, [sesionId]);
+                
+                    return res.json(historialRows);
+                  } catch (error) {
+                    console.error('Error obteniendo historial:', error);
+                    return res.status(500).json({ error: 'Error interno' });
+                  }
+                });
+                
+                // NUEVA RUTA: Actualizar estado de la sesión (PUT /sessions/:id)
+                router.put('/:id', requireAuth, async (req, res) => {
+                  try {
+                    const userId = req.user.id;
+                    const sesionId = req.params.id;
+                    const { estado } = req.body;
+                
+                    if (!estado) {
+                      return res.status(400).json({ error: 'Falta el estado en el body' });
+                    }
+                
+                    // Verificar que la sesión pertenezca al usuario
+                    const [sesionRows] = await pool.query(`
+                      SELECT * FROM conversaciones_sesion
+                      WHERE id = ? AND userId = ?
+                    `, [sesionId, userId]);
+                
+                    if (sesionRows.length === 0) {
+                      return res.status(403).json({ error: 'No tienes acceso a esta sesión' });
+                    }
+                
+                    // Actualizar la sesión con el nuevo estado
+                    await pool.query(`
+                      UPDATE conversaciones_sesion
+                      SET estado = ?
+                      WHERE id = ?
+                    `, [estado, sesionId]);
+                
+                    return res.json({ msg: 'Sesión actualizada', estado });
+                  } catch (error) {
+                    console.error('Error al actualizar sesión:', error);
+                    return res.status(500).json({ error: 'Error interno al actualizar sesión' });
+                  }
+                });
+                
+                export default router;
+    📁 src/
+        📄 App.jsx
+            // src/App.jsx
+            import React from 'react';
+            import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+            
+            // Importamos las páginas:
+            import Board from './pages/Board';
+            import Login from './pages/Login';
+            
+            // Componente principal con Router
+            const App = () => {
+              return (
+                <BrowserRouter>
+                  <Routes>
+                    {/* Al entrar a "/", redireccionamos a "/login" */}
+                    <Route path="/" element={<Navigate to="/login" />} />
+                    
+                    {/* Ruta para el Login */}
+                    <Route path="/login" element={<Login />} />
+                    
+                    {/* Ruta para el Board */}
+                    <Route path="/board" element={<Board />} />
+                  </Routes>
+                </BrowserRouter>
+              );
+            };
+            
+            export default App;
+        📄 db.js
+            import initSqlJs from 'sql.js';
+            
+                let db;
+            
+                const initializeDB = async () => {
+                  try {
+                    const SQL = await initSqlJs({
+                      locateFile: (file) => `https://sql.js.org/dist/${file}`
+                    });
+            
+                    db = new SQL.Database();
+            
+                    // Crear la tabla si no existe
+                    db.run(`
+                      CREATE TABLE IF NOT EXISTS kssd00conver (
+                        id TEXT PRIMARY KEY,
+                        cliente TEXT,
+                        viaContacto TEXT CHECK(viaContacto IN ('Correo', 'Llamada', 'Whatsapp')),
+                        fecha TEXT,
+                        correo TEXT,
+                        empresa TEXT,           
+                        ruc TEXT,
+                        consulta TEXT,
+                        interactions TEXT,
+                        estado TEXT CHECK(estado IN ('en-conversacion', 'proceso-terminado')),
+                        telefono TEXT           
+                      );
+            
+                    `);
+                    
+                  } catch (error) {
+                    console.error('Error initializing database:', error);
+                  }
+                };
+            
+                const dbMethods = {
+                  async addCard(card) {
+                    if (!db) await initializeDB();
+                    const id = `card-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+                    // Recomendable: especificar los campos de manera explícita:
+                    db.run(
+                      `INSERT INTO kssd00conver
+                        (id, cliente, viaContacto, fecha, correo, empresa, ruc, consulta, interactions, estado, telefono)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                      `,
+                      [
+                        id,
+                        card.cliente,
+                        card.viaContacto,
+                        card.fecha,
+                        card.correo,
+                        card.empresa, // Ojo: corresponde a la columna "empresa"
+                        card.ruc,
+                        card.consulta,
+                        JSON.stringify(card.interactions),
+                        'en-conversacion',
+                        card.telefono // <-- valor para la columna "telefono"
+                      ]
+                    );
+                    return id;
+                  },
+            
+                  async updateCard(card) {
+                    if (!db) await initializeDB();
+                    db.run(
+                      `UPDATE kssd00conver SET
+                        cliente = ?,
+                        viaContacto = ?,
+                        fecha = ?,
+                        correo = ?,
+                        empresa = ?,
+                        ruc = ?,
+                        consulta = ?,
+                        interactions = ?,
+                        estado = ?,
+                        telefono = ?
+                      WHERE id = ?`,
+                      [
+                        card.cliente,
+                        card.viaContacto,
+                        card.fecha,
+                        card.correo,
+                        card.empresa,       // Reemplazar "nombreCliente" por "empresa"
+                        card.ruc,
+                        card.consulta,
+                        JSON.stringify(card.interactions),
+                        card.estado,
+                        card.telefono,      // Nuevo valor
+                        card.id
+                      ]
+                    );
+                                  },
+            
+                  async getCards() {
+                    if (!db) await initializeDB();
+                    const result = db.exec(`SELECT * FROM kssd00conver`);
+                    if (result.length === 0) return [];
+                    return result[0].values.map((row) => ({
+                      id: row[0],
+                      cliente: row[1],
+                      viaContacto: row[2],
+                      fecha: row[3],
+                      correo: row[4],
+                      empresa: row[5],         // antes tenías row[5] como nombreCliente
+                      ruc: row[6],
+                      consulta: row[7],
+                      interactions: JSON.parse(row[8]),
+                      estado: row[9],
+                      telefono: row[10]        // <-- Columna 11 (índice 10)
+                    }));
+                    
+                  }
+                };
+            
+                // Inicializar la base de datos al cargar el módulo
+                initializeDB();
+            
+                export { dbMethods as db };
+        📄 index.css
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 0;
+            }
+            
+            .board {
+              display: flex;
+              gap: 1rem;
+              padding: 1rem;
+            }
+            
+            .column {
+              flex: 1;
+              background: #f4f4f4;
+              padding: 1rem;
+              border-radius: 4px;
+            }
+            
+            .card {
+              background: white;
+              padding: 1rem;
+              margin-bottom: 1rem;
+              border-radius: 4px;
+              box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+              cursor: pointer;
+            }
+            
+            .card h3 {
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+            }
+            
+            .interaction-count {
+              font-size: 0.8rem;
+              color: #666;
+              background: #f0f0f0;
+              padding: 0.25rem 0.5rem;
+              border-radius: 12px;
+            }
+            
+            .add-card {
+              margin-top: 1rem;
+              padding: 0.5rem;
+              background: #4CAF50;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+            }
+            
+            .modal {
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(0, 0, 0, 0.5);
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            }
+            
+            .modal-content {
+              background: white;
+              padding: 2rem;
+              border-radius: 8px;
+              width: 90%;
+              max-width: 1200px;
+              max-height: 90vh;
+              overflow-y: auto;
+            }
+            
+            .modal-content h2 {
+              margin-top: 0;
+            }
+            
+            .card-header {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 1rem;
+              margin-bottom: 1.5rem;
+            }
+            
+            .info-card {
+              background: #f9f9f9;
+              padding: 0.75rem 1.25rem;
+              border-radius: 4px;
+              box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+              min-width: 180px;
+              flex: 1 1 200px;
+            }
+            
+            .info-card strong {
+              display: block;
+              margin-bottom: 0.25rem;
+              color: #333;
+            }
+            
+            .modal-columns {
+              display: flex;
+              gap: 2rem;
+              flex-wrap: wrap;
+            }
+            
+            .interactions-column {
+              flex: 2;
+              min-width: 300px;
+            }
+            
+            .form-column {
+              flex: 1;
+              min-width: 250px;
+            }
+            
+            .interactions-list {
+              margin-bottom: 1.5rem;
+            }
+            
+            .interaction-item {
+              margin-bottom: 1rem;
+              padding: 0.75rem;
+              background: #f9f9f9;
+              border-radius: 4px;
+            }
+            
+            .interaction-item p {
+              margin: 0.25rem 0;
+            }
+            
+            .modal-content form {
+              display: flex;
+              flex-direction: column;
+              gap: 1rem;
+            }
+            
+            .modal-content label {
+              display: flex;
+              flex-direction: column;
+              gap: 0.5rem;
+            }
+            
+            .modal-content input,
+            .modal-content select,
+            .modal-content textarea {
+              padding: 0.5rem;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+            }
+            
+            .modal-content button {
+              padding: 0.5rem;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+            }
+            
+            .modal-content button[type="submit"] {
+              background: #4CAF50;
+              color: white;
+            }
+            
+            .modal-content button[type="button"] {
+              background: #f44336;
+              color: white;
+            }
+            
+            /* Responsividad para pantallas pequeñas */
+            @media (max-width: 768px) {
+              .modal-columns {
+                flex-direction: column;
+              }
+            
+              .interactions-column,
+              .form-column {
+                min-width: 100%;
+              }
+            }
+        📄 main.jsx
+            import React from 'react';
+                import ReactDOM from 'react-dom/client';
+                import App from './App';
+                import './index.css';
+            
+                ReactDOM.createRoot(document.getElementById('root')).render(
+                  <React.StrictMode>
+                    <App />
+                  </React.StrictMode>
+                );
+        📁 components/
+            📄 CardDetails.jsx
+                // src/components/CardDetails.jsx
+                import React, { useState } from 'react';
+                import dayjs from 'dayjs';
+                
+                const CardDetails = ({ card, onClose, onAddInteraction }) => {
+                  const [interactionData, setInteractionData] = useState({
+                    quienInteractuo: '',
+                    viaInteraccion: 'Correo',
+                    fechaInteraccion: dayjs().format('YYYY-MM-DDTHH:mm'),
+                    mensaje: ''
+                  });
+                
+                  const handleAddInteraction = (e) => {
+                    e.preventDefault();
+                
+                    // Validar que todos los campos estén completos
+                    if (
+                      !interactionData.quienInteractuo ||
+                      !interactionData.viaInteraccion ||
+                      !interactionData.fechaInteraccion ||
+                      !interactionData.mensaje
+                    ) {
+                      console.error('Todos los campos son obligatorios');
+                      return;
+                    }
+                
+                    // Crear la interacción con un ID único
+                    const interaction = {
+                      id: `interaction-${Date.now()}`,
+                      quienInteractuo: interactionData.quienInteractuo,
+                      viaInteraccion: interactionData.viaInteraccion,
+                      fechaInteraccion: interactionData.fechaInteraccion,
+                      mensaje: interactionData.mensaje
+                    };
+                
+                    // Llamar a la función para agregar la interacción
+                    onAddInteraction(interaction);
+                
+                    // Limpiar el formulario
+                    setInteractionData({
+                      quienInteractuo: '',
+                      viaInteraccion: 'Correo',
+                      fechaInteraccion: dayjs().format('YYYY-MM-DDTHH:mm'),
+                      mensaje: ''
+                    });
+                  };
+                
+                  return (
+                    <div className="modal">
+                      <div className="modal-content">
+                        {/* Título reducido */}
+                        <h4>Detalles de la Tarjeta</h4>
+                
+                        {/* Actualización del card-header con tarjetas individuales */}
+                        <div className="card-header">
+                          <div className="info-card">
+                            <strong>Título:</strong>
+                            <span>{card.titulo}</span>
+                          </div>
+                          <div className="info-card">
+                            <strong>Número de Sesión:</strong>
+                            <span>{card.id}</span>
+                          </div>
+                          <div className="info-card">
+                            <strong>Empresa:</strong>
+                            <span>{card.empresa}</span>
+                          </div>
+                          <div className="info-card">
+                            <strong>RUC:</strong>
+                            <span>{card.ruc}</span>
+                          </div>
+                          <div className="info-card">
+                            <strong>Consulta:</strong>
+                            <span>{card.consulta}</span>
+                          </div>
+                          <div className="info-card">
+                            <strong>Fecha:</strong>
+                            <span>{dayjs(card.fecha).format('DD/MM/YYYY')}</span>
+                          </div>
+                          <div className="info-card">
+                            <strong>Número de Teléfono:</strong>
+                            <span>{card.telefono}</span>
+                          </div>
+                          <div className="info-card">
+                            <strong>Número de Interacciones:</strong>
+                            <span>{card.interactions ? card.interactions.length : 0}</span>
+                          </div>
+                          <div className="info-card">
+                            <strong>Correo:</strong>
+                            <span>{card.correo}</span>
+                          </div>
+                        </div>
+                
+                        <div className="modal-columns">
+                          {/* Columna izquierda: Lista de interacciones */}
+                          <div className="interactions-column">
+                            <h4>Interacciones:</h4>
+                            <div className="interactions-list">
+                              {/* Consulta original */}
+                              <div className="interaction-item">
+                                <p>
+                                  <strong>Empresa:</strong> {card.empresa} / 
+                                  {card.fecha && dayjs(card.fecha).isValid() ? dayjs(card.fecha).format('DD/MM/YYYY HH:mm') : 'Fecha inválida'} / 
+                                  {card.viaContacto}
+                                </p>
+                                <p>{card.consulta}</p>
+                              </div>
+                
+                              {/* Interacciones adicionales */}
+                              {(card.interactions || []).map((interaction) => (
+                                <div key={interaction.id} className="interaction-item">
+                                  <p>
+                                    <strong>{interaction.quienInteractuo}</strong> / {interaction.viaInteraccion} / {dayjs(interaction.fechaInteraccion).format('DD/MM/YYYY HH:mm')}
+                                  </p>
+                                  <p>{interaction.mensaje}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                
+                          {/* Columna derecha: Formulario para agregar interacciones */}
+                          <div className="form-column">
+                            <h4>Agregar Interacción:</h4>
+                            <form onSubmit={handleAddInteraction}>
+                              <label>
+                                Quién interactuó:
+                                <select
+                                  value={interactionData.quienInteractuo}
+                                  onChange={(e) => setInteractionData({ ...interactionData, quienInteractuo: e.target.value })}
+                                  required
+                                >
+                                  <option value="">-- Selecciona una opción --</option>
+                                  <option value="Asesor">Asesor</option>
+                                  <option value="Cliente">Cliente</option>
+                                  <option value="Otro">Otro</option>
+                                </select>
+                              </label>
+                
+                              <label>
+                                Vía de Interacción:
+                                <select
+                                  value={interactionData.viaInteraccion}
+                                  onChange={(e) => setInteractionData({ ...interactionData, viaInteraccion: e.target.value })}
+                                >
+                                  <option value="Correo">Correo</option>
+                                  <option value="Llamada">Llamada</option>
+                                  <option value="Whatsapp">Whatsapp</option>
+                                </select>
+                              </label>
+                
+                              <label>
+                                Fecha de Interacción:
+                                <input
+                                  type="datetime-local"
+                                  value={interactionData.fechaInteraccion}
+                                  onChange={(e) => setInteractionData({ ...interactionData, fechaInteraccion: e.target.value })}
+                                  required
+                                />
+                              </label>
+                
+                              <label>
+                                Mensaje:
+                                <textarea
+                                  value={interactionData.mensaje}
+                                  onChange={(e) => setInteractionData({ ...interactionData, mensaje: e.target.value })}
+                                  required
+                                />
+                              </label>
+                
+                              <button type="submit">Agregar Interacción</button>
+                              <button type="button" onClick={onClose}>
+                                Cerrar
+                              </button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                };
+                
+                export default CardDetails;
+            📄 CardForm.jsx
+                // src/components/CardForm.jsx
+                import React, { useState } from 'react';
+                
+                const CardForm = ({ onClose, onSubmit }) => {
+                  // Ajustamos el estado inicial para incluir los nuevos campos
+                  const [formData, setFormData] = useState({
+                    titulo: '',          // Nuevo campo: Título de la sesión
+                    cliente: '',         // Campo existente: Cliente
+                    viaContacto: 'Correo', // Campo existente: Vía de Contacto
+                    telefono: '',        // Nuevo campo: Número de Teléfono
+                    fecha: new Date().toISOString().split('T')[0], // Campo existente: Fecha
+                    correo: '',          // Campo existente: Correo
+                    empresa: '',         // Nuevo campo: Empresa
+                    ruc: '',             // Nuevo campo: RUC
+                    consulta: ''         // Nuevo campo: Consulta
+                  });
+                
+                  // Función para manejar el envío del formulario
+                  const handleSubmit = (e) => {
+                    e.preventDefault();
+                    onSubmit(formData); // Enviar los datos al componente padre
+                    onClose();          // Cerrar el formulario modal
+                  };
+                
+                  return (
+                    <div className="modal">
+                      <div className="modal-content">
+                        <h2>Nueva Sesión</h2> {/* Actualizado de "Nueva Tarjeta" a "Nueva Sesión" */}
+                
+                        <form onSubmit={handleSubmit}>
+                
+                          {/* Título de la Sesión */}
+                          <label>
+                            Título:
+                            <input
+                              type="text"
+                              name="titulo"
+                              value={formData.titulo}
+                              onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
+                              required
+                            />
+                          </label>
+                
+                          {/* Cliente (si aún lo utilizas) */}
+                          <label>
+                            Cliente:
+                            <input
+                              type="text"
+                              name="cliente"
+                              value={formData.cliente}
+                              onChange={(e) => setFormData({ ...formData, cliente: e.target.value })}
+                              required
+                            />
+                          </label>
+                
+                          {/* Vía de Contacto */}
+                          <label>
+                            Vía de Contacto:
+                            <select
+                              name="viaContacto"
+                              value={formData.viaContacto}
+                              onChange={(e) => setFormData({ ...formData, viaContacto: e.target.value })}
+                            >
+                              <option value="Correo">Correo</option>
+                              <option value="Llamada">Llamada</option>
+                              <option value="Whatsapp">Whatsapp</option>
+                            </select>
+                          </label>
+                
+                          {/* Número de Teléfono (Nuevo Campo) */}
+                          <label>
+                            Número de Teléfono:
+                            <input
+                              type="text"
+                              name="telefono"
+                              value={formData.telefono}
+                              onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                              required // Si es obligatorio, puedes mantenerlo; de lo contrario, elimínalo
+                            />
+                          </label>
+                
+                          {/* Fecha */}
+                          <label>
+                            Fecha:
+                            <input
+                              type="date"
+                              name="fecha"
+                              value={formData.fecha}
+                              onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
+                              required
+                            />
+                          </label>
+                
+                          {/* Correo */}
+                          <label>
+                            Correo:
+                            <input
+                              type="email"
+                              name="correo"
+                              value={formData.correo}
+                              onChange={(e) => setFormData({ ...formData, correo: e.target.value })}
+                              required
+                            />
+                          </label>
+                
+                          {/* Empresa (Nuevo Campo) */}
+                          <label>
+                            Empresa:
+                            <input
+                              type="text"
+                              name="empresa"
+                              value={formData.empresa}
+                              onChange={(e) => setFormData({ ...formData, empresa: e.target.value })}
+                              required
+                            />
+                          </label>
+                
+                          {/* RUC (Nuevo Campo) */}
+                          <label>
+                            RUC:
+                            <input
+                              type="text"
+                              name="ruc"
+                              value={formData.ruc}
+                              onChange={(e) => setFormData({ ...formData, ruc: e.target.value })}
+                              required
+                            />
+                          </label>
+                
+                          {/* Consulta (Nuevo Campo) */}
+                          <label>
+                            Consulta:
+                            <textarea
+                              name="consulta"
+                              value={formData.consulta}
+                              onChange={(e) => setFormData({ ...formData, consulta: e.target.value })}
+                              required
+                            />
+                          </label>
+                
+                          {/* Botones de Acción */}
+                          <button type="submit">Guardar</button>
+                          <button type="button" onClick={onClose}>
+                            Cancelar
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  );
+                };
+                
+                export default CardForm;
+        📁 pages/
+            📄 Board.jsx
+                // src/pages/Board.jsx
+                import React, { useState, useEffect } from 'react';
+                import axios from 'axios';
+                import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+                import CardForm from '../components/CardForm';
+                import CardDetails from '../components/CardDetails';
+                import '../index.css';
+                
+                // Columnas base de arrastrar y soltar
+                const initialColumns = {
+                  'en-conversacion': {
+                    id: 'en-conversacion',
+                    title: 'En Conversación',
+                    sessionIds: []
+                  },
+                  'proceso-terminado': {
+                    id: 'proceso-terminado',
+                    title: 'Proceso Terminado',
+                    sessionIds: []
+                  }
+                };
+                
+                const Board = () => {
+                  const [columns, setColumns] = useState(initialColumns);
+                  // sessions almacenará un objeto { [idSesion]: { id, titulo, estado, ... } }
+                  const [sessions, setSessions] = useState({});
+                  const [showForm, setShowForm] = useState(false);
+                  const [selectedSession, setSelectedSession] = useState(null);
+                
+                  // Al montar, traer las sesiones del backend
+                  useEffect(() => {
+                    fetchSessions();
+                  }, []);
+                
+                  const fetchSessions = async () => {
+                    try {
+                        const token = localStorage.getItem('token'); // Debe existir ahora
+                        const res = await axios.get('http://localhost:3001/sessions', {
+                          headers: {
+                            Authorization: `Bearer ${token}`
+                          }
+                        });
+                        
+                      // res.data debe ser un array de sesiones { id, userId, titulo, estado, fecha_creacion, ...}
+                      const sessionsFromDB = res.data;
+                
+                      // Reconstruir un objeto "sessions" y las columnas
+                      const newSessions = {};
+                      const newColumns = JSON.parse(JSON.stringify(initialColumns));
+                
+                      sessionsFromDB.forEach((ses) => {
+                        newSessions[ses.id] = ses;
+                        // Insertar en la columna según su estado ('en-conversacion' o 'proceso-terminado')
+                        if (newColumns[ses.estado]) {
+                          newColumns[ses.estado].sessionIds.push(ses.id);
+                        } else {
+                          // si no existe, lo metes en 'en-conversacion' por default
+                          newColumns['en-conversacion'].sessionIds.push(ses.id);
+                        }
+                      });
+                
+                      setSessions(newSessions);
+                      setColumns(newColumns);
+                    } catch (error) {
+                      console.error('Error fetching sessions:', error);
+                    }
+                  };
+                
+                  // Crear nueva sesión (etiqueta)
+                  const handleAddSession = async (formData) => {
+                    try {
+                      const token = localStorage.getItem('token');
+                      // supongamos que en formData.empresa viene el título
+                      const titulo = formData.empresa || 'Sin título';
+                
+                      // POST /sessions con { titulo }
+                      await axios.post(
+                        'http://localhost:3001/sessions',
+                        { titulo },
+                        {
+                          headers: { Authorization: `Bearer ${token}` }
+                        }
+                      );
+                
+                      // Volver a cargar la lista de sesiones
+                      fetchSessions();
+                    } catch (error) {
+                      console.error('Error adding session:', error);
+                    }
+                  };
+                
+                  // Drag and Drop
+                  const handleDragEnd = async (result) => {
+                    const { destination, source, draggableId } = result;
+                    if (!destination) return;
+                    if (destination.droppableId === source.droppableId) return;
+                
+                    const start = columns[source.droppableId];
+                    const finish = columns[destination.droppableId];
+                
+                    // remover de la columna origen
+                    const newStartIds = Array.from(start.sessionIds);
+                    newStartIds.splice(source.index, 1);
+                
+                    // agregar a la columna destino
+                    const newFinishIds = Array.from(finish.sessionIds);
+                    newFinishIds.splice(destination.index, 0, draggableId);
+                
+                    // Actualizar la sesión en el backend con el nuevo estado
+                    try {
+                      const token = localStorage.getItem('token');
+                      const newEstado = finish.id; // 'en-conversacion' o 'proceso-terminado'
+                      await axios.put(
+                        `http://localhost:3001/sessions/${draggableId}`,
+                        { estado: newEstado },
+                        {
+                          headers: { Authorization: `Bearer ${token}` }
+                        }
+                      );
+                
+                      // Actualizar el estado local
+                      const updatedColumns = {
+                        ...columns,
+                        [start.id]: {
+                          ...start,
+                          sessionIds: newStartIds
+                        },
+                        [finish.id]: {
+                          ...finish,
+                          sessionIds: newFinishIds
+                        }
+                      };
+                
+                      // Actualizar 'estado' en sessions
+                      const updatedSession = { ...sessions[draggableId], estado: newEstado };
+                      setSessions((prev) => ({
+                        ...prev,
+                        [draggableId]: updatedSession
+                      }));
+                
+                      setColumns(updatedColumns);
+                    } catch (error) {
+                      console.error('Error updating session state:', error);
+                    }
+                  };
+                
+                  const handleCardClick = (sessionId) => {
+                    const ses = sessions[sessionId];
+                    setSelectedSession(ses);
+                  };
+                
+                  // Manejar la interacción en CardDetails (opcional)
+                  const handleAddInteraction = async (sessionId, interactionData) => {
+                    // Podrías hacer un POST /sessions/:id/historial
+                    console.log('Agregar interacción a la sesión:', sessionId, interactionData);
+                  };
+                
+                  return (
+                    <div>
+                      <DragDropContext onDragEnd={handleDragEnd}>
+                        <div className="board">
+                          {Object.values(columns).map((column) => (
+                            <Droppable droppableId={column.id} key={column.id}>
+                              {(provided) => (
+                                <div
+                                  className="column"
+                                  ref={provided.innerRef}
+                                  {...provided.droppableProps}
+                                >
+                                  <h2>{column.title}</h2>
+                                  {column.sessionIds.map((sessId, index) => {
+                                    const sessionData = sessions[sessId];
+                                    return (
+                                      <Draggable
+                                        draggableId={String(sessId)}
+                                        key={sessId}
+                                        index={index}
+                                      >
+                                        {(provided) => (
+                                          <div
+                                            className="card"
+                                            ref={provided.innerRef}
+                                            {...provided.draggableProps}
+                                            {...provided.dragHandleProps}
+                                            onClick={() => handleCardClick(sessId)}
+                                          >
+                                            <h3>{sessionData?.titulo || 'Sin Título'}</h3>
+                                            <p>ID: {sessionData?.id}</p>
+                                            <p>Estado: {sessionData?.estado}</p>
+                                          </div>
+                                        )}
+                                      </Draggable>
+                                    );
+                                  })}
+                                  {provided.placeholder}
+                                </div>
+                              )}
+                            </Droppable>
+                          ))}
+                        </div>
+                      </DragDropContext>
+                
+                      {/* Botón para abrir el formulario de nueva sesión */}
+                      <button className="add-card" onClick={() => setShowForm(true)}>
+                        + Agregar Sesión
+                      </button>
+                
+                      {/* Formulario para crear sesión (usa CardForm por conveniencia) */}
+                      {showForm && (
+                        <CardForm
+                          onClose={() => setShowForm(false)}
+                          onSubmit={handleAddSession}
+                        />
+                      )}
+                
+                      {/* Modal con detalles de la sesión */}
+                      {selectedSession && (
+                        <CardDetails
+                          card={selectedSession}
+                          onClose={() => setSelectedSession(null)}
+                          onAddInteraction={(interaction) =>
+                            handleAddInteraction(selectedSession.id, interaction)
+                          }
+                        />
+                      )}
+                    </div>
+                  );
+                };
+                
+                export default Board;
+            📄 Login.jsx
+                // src/pages/Login.jsx
+                import React, { useState } from 'react';
+                import axios from 'axios';
+                import { useNavigate } from 'react-router-dom';  // <-- Importante
+                
+                const Login = () => {
+                  const [form, setForm] = useState({
+                    correo: '',
+                    password: ''
+                  });
+                  const [message, setMessage] = useState('');
+                  const [token, setToken] = useState(null);
+                
+                  // Hook de react-router-dom para navegar
+                  const navigate = useNavigate();
+                
+                  const handleChange = (e) => {
+                    setForm({
+                      ...form,
+                      [e.target.name]: e.target.value
+                    });
+                  };
+                
+                  const handleSubmit = async (e) => {
+                    e.preventDefault();
+                    setMessage(''); // limpiar mensaje
+                
+                    try {
+                      const response = await axios.post('http://localhost:3001/auth/login', {
+                        correo: form.correo,
+                        password: form.password
+                      });
+                
+                      if (response.data.token) {
+                        localStorage.setItem('token', response.data.token); // Asegúrate de DESCOMENTAR o agregar
+                        navigate('/board');
+                      }
+                    } catch (error) {
+                      console.error('Error login:', error);
+                      if (error.response && error.response.data.error) {
+                        setMessage(error.response.data.error);
+                      } else {
+                        setMessage('Error de conexión o de servidor');
+                      }
+                    }
+                  };
+                
+                  return (
+                    <div style={{ margin: '1rem' }}>
+                      <h2>Iniciar Sesión</h2>
+                      <form onSubmit={handleSubmit}>
+                        <div>
+                          <label>Correo:</label>
+                          <input
+                            type="email"
+                            name="correo"
+                            value={form.correo}
+                            onChange={handleChange}
+                            required
+                          />
+                        </div>
+                
+                        <div>
+                          <label>Contraseña:</label>
+                          <input
+                            type="password"
+                            name="password"
+                            value={form.password}
+                            onChange={handleChange}
+                            required
+                          />
+                        </div>
+                
+                        <button type="submit">Ingresar</button>
+                      </form>
+                
+                      {message && <p>{message}</p>}
+                
+                      {token && (
+                        <div>
+                          <p>Token de sesión (JWT):</p>
+                          <textarea
+                            rows="4"
+                            cols="50"
+                            value={token}
+                            readOnly
+                          ></textarea>
+                        </div>
+                      )}
+                    </div>
+                  );
+                };
+                
+                export default Login;
